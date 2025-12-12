@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 项目结构
+```
+project-root/
+├── app/                  # 核心：前端页面 + 后端API（Next.js App Router）
+│   ├── page.tsx          # 前端首页（路由：/）
+│   ├── layout.tsx        # 前端全局布局（导航栏、页脚等）
+│   ├── globals.css       # 前端全局样式
+│   └── api/              # 后端API路由（所有接口入口）
+│       ├── user/         # 用户相关接口（路由：/api/user）
+│       │   └── route.ts  # 处理用户登录/注册/信息查询
+│       └── data/         # 数据相关接口（路由：/api/data）
+│           └── route.ts  # 处理数据查询/提交
+├── components/           # 前端组件（所有可复用UI）
+│   ├── layout/           # 布局组件（导航栏、侧边栏等）
+│   └── ui                # 基础UI组件（无业务逻辑），如按钮、输入框、弹窗等，可跨项目复用。
+├── lib/                  # 工具库（前端+后端共用）
+│   ├── db/               # 后端：数据库连接（如Prisma/MySQL客户端）
+│   ├── auth/             # 后端：认证逻辑（密码加密、Token验证）
+│   └── utils/            # 通用工具（前端/后端都能用，如格式化函数）
+├── public/               # 静态资源（图片、字体等，前端直接访问）
+├── .env.local            # 环境变量（数据库地址、密钥等，前后端共用）
+├── next.config.js        # Next.js配置（必选）
+└── package.json          # 依赖和脚本（必选）
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### 核心目录/文件的职责（精简逻辑）
+##### 1. `app/`：前后端入口的“总枢纽”
+- **前端部分**：  
+  - `page.tsx`：对应路由的页面内容（如`app/about/page.tsx`对应`/about`），默认是服务器组件（减少前端JS体积），需要交互时加`'use client'`。  
+  - `layout.tsx`：全局或子路由的布局框架（如导航栏、页脚），所有子页面共享。  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **后端部分**：  
+  - `app/api/`：所有后端接口的存放地，每个`route.ts`对应一个API端点（如`app/api/user/route.ts`处理`POST /api/user`登录请求）。  
+  - 这里的代码**只在服务器运行**（安全，可直接操作数据库、处理敏感逻辑）。  
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+##### 2. `components/`：前端UI组件库（无细分）
+- 存放所有前端可复用的UI元素，不做过多子目录拆分（精简原则），按功能命名即可（如`LoginForm.tsx`、`Chart.tsx`）。  
+- 区分“通用组件”（如`Button.tsx`）和“业务组件”（如`UserCard.tsx`）靠命名，而非目录，适合小型项目。  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+##### 3. `lib/`：前后端共用的“工具仓库”
+- **后端工具**：`db.ts`（数据库连接）、`auth.ts`（认证逻辑）等，仅在服务器端调用（如API路由中使用）。  
+- **通用工具**：`utils.ts`（如日期格式化、数据校验），前端组件和后端API都能引用（跨端复用）。  
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+##### 4. `public/`：静态资源“直连站”
+- 存放图片、字体、favicon等，前端可直接通过`/logo.png`访问（无需导入），后端API也可引用（如返回图片URL）。  
